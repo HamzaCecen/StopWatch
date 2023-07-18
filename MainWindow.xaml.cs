@@ -1,7 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,27 +15,76 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using System.Timers;
 
-namespace DispatcherTime
+namespace TimeMeasure
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
+        private DispatcherTimer dt;
+        //private DateTime displayTime;
+        private const string displaytime = "00:00:00";
+        private Stopwatch stopwatch;
+        private System.Timers.Timer timer;
+                
         public MainWindow()
         {
             InitializeComponent();
 
-            DispatcherTimer dt = new DispatcherTimer(); //I cannot use DispatcherTime bcz it is namespace not type
-            dt.Tick += new EventHandler(UpdateTime_Tick); // EventHandler -> process events raised by multiple controls, Tick -> tekrarlanmasını istenen bir metot
-            dt.Interval = new TimeSpan(0, 0, 1); //DateTime gibi struct(yapı) olarak tasarlanmış bir süre temsil eden değişkendir
-            dt.Start();
+            //display as 00:00
+            DisplayTime.Text = displaytime;
+
+            //create new instances
+            stopwatch = new Stopwatch();
+            dt = new DispatcherTimer();
+            timer = new System.Timers.Timer(interval:1000);
+
+
+            //timer.Interval = 1000; //1s
+            timer.Elapsed += timer_tick;
+
+            //timer.Interval = TimeSpan.FromSeconds(1);
+
+            
+
+
+
         }
 
-        private void UpdateTime_Tick(object sender, EventArgs e)
+        private void OnTimerElapsed(object sender, EventArgs e)
         {
-            DisplayDate.Text = DateTime.Now.ToString();
+            
+        }
+
+        private void timer_tick(object sender, EventArgs e)
+        {
+            //TimeSpan elapsedTime = DateTime.Now - displayTime;
+            //DisplayTime.Text = elapsedTime.ToString(@"hh\:mm");
+            Application.Current.Dispatcher.Invoke(() => DisplayTime.Text = stopwatch.Elapsed.ToString(@"hh\:mm\:ss"));
+        }
+
+        private void Start_Click(object sender, RoutedEventArgs e)
+        {
+            stopwatch.Start();
+            timer.Start();
+            Clear.IsEnabled = false;
+
+        }
+        
+        private void Stop_Click(object sender, RoutedEventArgs e)
+        {
+            stopwatch.Stop();
+            timer.Stop();
+            Clear.IsEnabled = true;
+        }
+
+        private void Clear_Click(object sender, RoutedEventArgs e)
+        {
+            stopwatch.Reset();
+            DisplayTime.Text = displaytime;
         }
     }
 }
